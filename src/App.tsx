@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { parseRoute, useHash, type Route } from './lib/router';
 import { CreateVaultPage } from './pages/CreateVaultPage';
-import { HomePage } from './pages/HomePage';
 import { ImportVaultPage } from './pages/ImportVaultPage';
+import { LandingPage } from './pages/LandingPage';
 import { LearnPage } from './pages/LearnPage';
 import { VaultPage } from './pages/VaultPage';
+import { VaultsPage } from './pages/VaultsPage';
 import { WithdrawPage } from './pages/WithdrawPage';
 
 function routeKey(route: Route): string {
@@ -14,7 +15,9 @@ function routeKey(route: Route): string {
 function Page({ route }: { route: Route }) {
   switch (route.name) {
     case 'home':
-      return <HomePage />;
+      return <LandingPage />;
+    case 'vaults':
+      return <VaultsPage />;
     case 'create':
       return <CreateVaultPage />;
     case 'import':
@@ -30,7 +33,7 @@ function Page({ route }: { route: Route }) {
         <div className="space-y-3">
           <h1 className="text-2xl font-bold">Page not found</h1>
           <a className="font-semibold text-teal-800 underline" href="#/">
-            Go to your vaults
+            Go to the home page
           </a>
         </div>
       );
@@ -38,7 +41,8 @@ function Page({ route }: { route: Route }) {
 }
 
 const NAV = [
-  { href: '#/', label: 'Vaults', match: ['home', 'create', 'import', 'vault', 'withdraw'] },
+  { href: '#/', label: 'Home', match: ['home'] },
+  { href: '#/vaults', label: 'Vaults', match: ['vaults', 'create', 'import', 'vault', 'withdraw'] },
   { href: '#/learn', label: 'Learn', match: ['learn'] },
 ];
 
@@ -59,6 +63,9 @@ export function App() {
     mainRef.current?.focus();
   }, [key]);
 
+  // The landing page uses a wider column than the wallet screens.
+  const width = route.name === 'home' ? 'max-w-6xl' : 'max-w-3xl';
+
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -72,12 +79,12 @@ export function App() {
         Skip to content
       </a>
       <div className="bg-amber-100 px-4 py-2 text-center text-sm text-amber-950">
-        Educational test app. Signet and testnet only: these coins have no value.
+        Educational project in public design. The demo vault runs on signet and testnet only: these coins have no value.
       </div>
       <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className={`mx-auto flex ${width} flex-wrap items-center justify-between gap-3 px-4 py-3`}>
           <a href="#/" className="flex items-center gap-2 no-underline">
-            <img src="./favicon.svg" alt="" width={32} height={32} />
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={32} height={32} />
             <span>
               <span className="block text-lg leading-tight font-bold text-stone-900">Kids Wallet</span>
               <span className="block text-xs text-stone-600">Bitcoin Is Everyone's Legacy</span>
@@ -105,11 +112,11 @@ export function App() {
           </nav>
         </div>
       </header>
-      <main id="main" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 outline-none sm:py-8">
+      <main id="main" ref={mainRef} tabIndex={-1} className={`mx-auto w-full ${width} flex-1 px-4 py-6 outline-none sm:py-8`}>
         <Page key={key} route={route} />
       </main>
       <footer className="border-t border-stone-200 bg-white">
-        <div className="mx-auto max-w-3xl space-y-1 px-4 py-4 text-sm text-stone-600">
+        <div className={`mx-auto ${width} space-y-1 px-4 py-4 text-sm text-stone-600`}>
           <p>
             Unaudited and for learning only. Keys are created and used inside this page and are never sent anywhere. The
             only network requests go to the public mempool.space API.

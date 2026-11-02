@@ -2,117 +2,101 @@
 
 [![CI](https://github.com/Hitice/kids-wallet/actions/workflows/ci.yml/badge.svg)](https://github.com/Hitice/kids-wallet/actions/workflows/ci.yml)
 
-B.I.E.L. - Bitcoin Is Everyone's Legacy.
+Bitcoin Is Everyone's Legacy.
 
-Kids Wallet is a non-custodial web app that lets parents save bitcoin for a child. The coins sit in a Bitcoin script with two spending paths: the parent can spend at any time, and the child can spend only after their 18th birthday. The app also has six short lessons about money for children and parents.
+Kids Wallet is an open-source project in public design. Parents, grandparents
+and friends save bitcoin for a child in a vault that only the child can open,
+at 18. The app grows with the child, an AI tutor walks beside them, and the
+rules of the vault are written in Bitcoin script, not in anyone's goodwill.
 
-The project is educational and unaudited. The user interface only works on signet and testnet, where coins have no value. Do not adapt it for real funds without an independent review.
+**Demo: [hitice.github.io/kids-wallet](https://hitice.github.io/kids-wallet/)**
+(signet and testnet only, coins have no value).
 
-## How the vault works
+Start with the [vision](docs/VISION.md), the [RFCs](docs/rfcs/) and the
+[roadmap](docs/ROADMAP.md).
 
-Each vault is a P2WSH (native SegWit v0) output locked by this witness script:
-
-```
-OP_IF
-  <parentPubKey> OP_CHECKSIG
-OP_ELSE
-  <unlockTime> OP_CHECKLOCKTIMEVERIFY OP_DROP
-  <childPubKey> OP_CHECKSIG
-OP_ENDIF
-```
-
-- `parentPubKey` and `childPubKey` are compressed secp256k1 public keys (33 bytes).
-- `unlockTime` is the child's 18th birthday at 00:00 UTC as a Unix timestamp. The app requires it to be at least 500000000 so that `OP_CHECKLOCKTIMEVERIFY` compares it with time and not with block height, and at most 0xffffffff so it fits in `nLockTime`. A child born on 29 February turns 18 on 1 March in non-leap years.
-- The vault address is `OP_0 <sha256(witnessScript)>` encoded in bech32 (`tb1q...` on signet and testnet).
-
-### Parent path
-
-Spends at any time. The witness stack is `<signature> <0x01> <witnessScript>`: the `0x01` makes `OP_IF` take the first branch. The app builds these transactions with `nLockTime = 0` and `nSequence = 0xfffffffd`.
-
-### Child path
-
-Spends only after `unlockTime`. The witness stack is `<signature> <empty> <witnessScript>`: the empty item makes `OP_IF` take the `OP_ELSE` branch. `OP_CHECKLOCKTIMEVERIFY` only passes when the transaction has `nLockTime >= unlockTime` (both as timestamps) and the input's `nSequence` is not `0xffffffff`, so the app sets `nLockTime = unlockTime` and `nSequence = 0xfffffffe` on every input. The app refuses to build a child-path transaction before the unlock time.
-
-### Median time past
-
-Time-based lock times are not checked against the clock or against the timestamp of the next block. Since BIP113, a transaction is final only when its `nLockTime` is lower than the median time past (MTP): the median timestamp of the previous 11 blocks. MTP usually trails real time by about one hour, so the child path becomes spendable roughly one to two hours after `unlockTime`. The withdraw screen reads the current MTP from mempool.space and uses it to decide whether the child path is open.
-
-### What the script does not do
-
-- The parent key keeps working after the 18th birthday. Once the child path opens, the child should move the coins to a wallet that only they control.
-- Change from a partial withdrawal goes back to the same vault address, so it stays under the same rules.
-- The script is a custom script, not Miniscript (it uses `OP_DROP` after `OP_CHECKLOCKTIMEVERIFY`), so general descriptor wallets will not recognize it. Use the exported vault file with this app or with the core library.
-- Lock times after 19 January 2038 (above 2^31 - 1) are encoded as 5-byte script numbers. Consensus accepts this for `OP_CHECKLOCKTIMEVERIFY`, and the unit tests cover it.
-
-## Why there is no facial recognition or birth-date key
-
-The original plan derived the wallet from the child's face and date of birth. A face and a birth date are public or easy to find, so a key built from them can be guessed by anyone; this app uses random keys from BIP39 recovery phrases instead.
-
-## Keys
-
-- Each vault has two keys, one for the parent and one for the child. The app can create both as 12-word BIP39 recovery phrases (128 bits of entropy from `crypto.getRandomValues`), or the parent can paste existing compressed public keys from another wallet.
-- Derivation path: `m/84'/1'/0'/0/0` on signet and testnet (`m/84'/0'/0'/0/0` would be used on mainnet), with no BIP39 passphrase. The BIP84 path is reused so the key can be found again with common tools; the key is used inside the vault script, not as a P2WPKH address.
-- New recovery phrases are shown once. The user must confirm they wrote each one down and type back one random word before the vault is saved.
-- To spend, the user types the recovery phrase (or a WIF private key) on the withdraw screen. The key signs locally and the field is cleared after signing.
-
-## Vault file
-
-The vault can be exported and imported as a JSON file. It contains only public data:
-
-```json
-{
-  "type": "kids-wallet-vault",
-  "version": 1,
-  "network": "signet",
-  "parentPubKey": "02...",
-  "childPubKey": "03...",
-  "unlockTime": 2160172800,
-  "unlockDate": "2038-06-15T00:00:00.000Z",
-  "witnessScript": "6321...ac68",
-  "address": "tb1q...",
-  "label": "optional",
-  "birthDate": "2020-06-15",
-  "parentDerivationPath": "m/84'/1'/0'/0/0",
-  "childDerivationPath": "m/84'/1'/0'/0/0"
-}
-```
-
-On import the app rebuilds the script and address from the keys and `unlockTime` and rejects the file if they do not match. Anyone with the file can see the balance, but nobody can spend without one of the two recovery phrases. Keep the file with the phrases: without it you would need the exact unlock time to rebuild the address.
-
-## Test vector
-
-Built from the public BIP39 test mnemonics (never use them for real coins), at `m/84'/1'/0'/0/0`:
-
-| Field | Value |
+| Phone (390 px) | Desktop (1280 px) |
 | --- | --- |
-| Parent mnemonic | `abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about` |
-| Child mnemonic | `zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong` |
-| Parent public key | `02e7ab2537b5d49e970309aae06e9e49f36ce1c9febbd44ec8e0d1cca0b4f9c319` |
-| Child public key | `02028e9de3ffe2238b2cbf8a60f1c99c076d6e89749018915f2f5af8c8da791c80` |
-| Birth date | 2020-06-15 |
-| unlockTime | `2160172800` (2038-06-15T00:00:00Z) |
-| Witness script | `632102e7ab2537b5d49e970309aae06e9e49f36ce1c9febbd44ec8e0d1cca0b4f9c319ac6705009fc18000b1752102028e9de3ffe2238b2cbf8a60f1c99c076d6e89749018915f2f5af8c8da791c80ac68` |
-| Testnet and signet address | `tb1q95v4u3dqqggstt0q7tzxt73z3j4hpmx2kfwttgl6c9ltryc77kyq9yecpt` |
-| Regtest address | `bcrt1q95v4u3dqqggstt0q7tzxt73z3j4hpmx2kfwttgl6c9ltryc77kyqgan753` |
+| ![Landing page at phone width](docs/screenshots/landing-390.png) | ![Landing page at desktop width](docs/screenshots/landing-1280.png) |
 
-## Security model and limitations
+## Grows with the child
 
-- Educational and unaudited. No security review has been done on the code or on the libraries it uses.
-- Signet and testnet only. The core library can build mainnet addresses, but the user interface offers no way to reach mainnet, and imported files for other networks are rejected.
-- Non-custodial and local. Keys are created and used in the browser. There is no backend and no analytics. The only network requests go to the public mempool.space API (UTXOs, previous transactions, fee estimates, chain tip and broadcast). The production build sets a Content Security Policy that only allows connections to `https://mempool.space`.
-- Keys live in browser memory while a page uses them. JavaScript cannot reliably wipe memory, and a compromised browser, extension or device can read anything on the page.
-- Recovery phrases and private keys are never written to `localStorage` or any other storage. Only public vault descriptors are stored, so the parent can reopen a vault.
-- Losing a recovery phrase means losing that path. If the parent phrase is lost, the coins can only move through the child path after the 18th birthday. If both phrases are lost, the coins are lost.
-- The app trusts mempool.space for balances and fee estimates. Previous transactions are checked against their txid before signing, and the txid returned by the broadcast is compared with the local one, but a malicious or unavailable API can still hide coins or block a broadcast. The raw transaction is shown so it can be broadcast through another node.
-- Only confirmed coins are spent. The fee is computed from an upper bound of the transaction size, so the final fee rate is never below the one requested.
+| Age | What the child sees |
+| --- | --- |
+| 6 to 9 | Cartoons and mini-games. A treasure chest that fills up. |
+| 10 to 13 | Challenges and quizzes. A first growth ceremony at 12. |
+| 14 to 17 | Real-world money: budgets, a first job, scams, self-custody. A second growth ceremony at 16. |
+| 18 | A hand-over ceremony. The child receives full control. |
 
-## Screenshots
+Lessons and games come from community-maintained, versioned
+[content packs](content/README.md). The app runs on tablet, phone and web as
+a PWA.
 
-Captured from the production build at phone width with Playwright.
+## Security premise
 
-| Vaults | Vault | Withdraw | Learn |
+- **The script governs the funds.** Not the parents, not the company, not the
+  AI. Parents have no spend path at all; anyone can deposit.
+- **The child path opens at 18,** enforced by `OP_CHECKLOCKTIMEVERIFY` on the
+  Bitcoin network.
+- **A lost key does not lose the savings.** The child's key is a FROST
+  threshold key whose shares shift toward the child at growth ceremonies. If
+  every share is lost, 2 of 3 independent guardians can move the coins after a
+  long delay, by policy only to a pre-committed list of children's charities.
+  The script enforces the 2 of 3 and the delay; the destination is enforced by
+  pre-signed transactions and published governance, because Bitcoin has no
+  covenants yet ([RFC 0007](docs/rfcs/0007-charity-fallback.md)).
+- **Biometrics unlock the device, never the vault.** They are not key material
+  and never leave the device: a biometric template is not secret and cannot be
+  changed if leaked, and a sensor reading is never bit-identical twice, while a
+  key must be ([RFC 0004](docs/rfcs/0004-device-biometrics-and-passkeys.md)).
+- **The tutor never holds keys and never sees secrets.** It teaches and runs the
+  ceremony screens; the script releases the funds
+  ([RFC 0005](docs/rfcs/0005-ai-tutor-by-age-band.md)).
+
+## Status
+
+Generated from `src/content/status.ts`, the same source as the landing page. A
+test fails if this table and the source differ.
+
+| Area | Status | Notes | RFC |
 | --- | --- | --- | --- |
-| ![Vault list](docs/screenshots/home.png) | ![Vault page with deposit address and QR code](docs/screenshots/vault.png) | ![Withdraw screen with the child path locked](docs/screenshots/withdraw.png) | ![Lessons](docs/screenshots/learn.png) |
+| Vault v0: P2WSH, parent path and child path after 18 | Ready | Educational prototype that proved the core. Signet and testnet only. To be superseded by v1. | [0001](docs/rfcs/0001-vault-v0.md) |
+| Web app: create, import, deposit, withdraw | Ready | Keys stay in the browser. The only network peer is mempool.space. |  |
+| Six lessons for children and parents | Ready | Learn page in the app and the first English content pack. |  |
+| Vault v1: Taproot with a guardian recovery leaf | In development | Script builder, address derivation and control blocks in src/core/taproot.ts with tests. No spending code and no UI yet. | [0002](docs/rfcs/0002-vault-v1-taproot-guardians.md) |
+| Install on tablet and phone (PWA) | In development | Web manifest and offline shell. Native clients are a contribution track. | [0008](docs/rfcs/0008-platforms-pwa.md) |
+| Threshold child key and growth ceremonies | Open for contribution | FROST shares that shift toward the child at 12 and 16, then the hand-over at 18. | [0003](docs/rfcs/0003-threshold-child-key-and-growth-ceremonies.md) |
+| Device biometrics and passkeys | Open for contribution | Unlock and authorize on the device. Never key material. | [0004](docs/rfcs/0004-device-biometrics-and-passkeys.md) |
+| AI tutor by age band | Open for contribution | Persona, prompts and a scripted demo exist. No model integration yet. | [0005](docs/rfcs/0005-ai-tutor-by-age-band.md) |
+| Content packs and translations | Open for contribution | Format, schema and example pack exist. pt-BR is the first community track. | [0006](docs/rfcs/0006-content-packs-and-community.md) |
+| Charity fallback | Open for contribution | Pre-signed transactions to a pre-committed list. Charities to be confirmed. | [0007](docs/rfcs/0007-charity-fallback.md) |
+| Flutter or native client on the same vault descriptor | Open for contribution | Read the vault file, show the balance, sign on the device. |  |
+| Mini-games for ages 6 to 9 | Open for contribution | Small games that teach saving and keys, shipped as content packs. | [0006](docs/rfcs/0006-content-packs-and-community.md) |
+
+## What runs today
+
+The demo vault is v0 ([RFC 0001](docs/rfcs/0001-vault-v0.md)): the educational
+prototype that proved the core. It is a P2WSH script with a parent path (any
+time) and a child path (after the 18th birthday), and the web app creates,
+imports, funds and spends it on signet and testnet. v1
+([RFC 0002](docs/rfcs/0002-vault-v1-taproot-guardians.md)) removes the parent
+path; its script builder and address derivation are in `src/core/taproot.ts`
+as a preview with test vectors, not wired into the UI.
+
+- Educational and unaudited. Do not adapt it for real funds without an
+  independent review.
+- Non-custodial and local. Keys are created and used in the browser. There is no
+  backend and no analytics. The production build sets a Content Security Policy
+  whose `connect-src` allows only `https://mempool.space`.
+- Recovery phrases and private keys are never written to storage. Only public
+  vault descriptors are saved. The service worker caches only the app's own
+  build files.
+- Keys live in browser memory while a page uses them. A compromised browser,
+  extension or device can read anything on the page.
+
+| Vault | Withdraw | Learn |
+| --- | --- | --- |
+| ![Vault page with deposit address and QR code](docs/screenshots/vault.png) | ![Withdraw screen with the child path locked](docs/screenshots/withdraw.png) | ![Lessons](docs/screenshots/learn.png) |
 
 ## Run and test
 
@@ -121,18 +105,24 @@ Requires Node.js 22.12 or newer.
 ```bash
 npm ci
 npm run dev        # development server at http://localhost:5173
-npm run build      # type check and production build in dist/
-npm run preview    # serve the production build
-npm test           # unit tests (Vitest)
 npm run lint       # ESLint
 npm run typecheck  # TypeScript, strict mode
+npm test           # Vitest: core, v1 preview, content packs, tutor prompts, status table
+npm run build      # type check and production build in dist/
+npm run preview    # serve the production build
 ```
 
-Get test coins from a signet or testnet faucet and send them to the vault address shown in the app.
+The GitHub Pages build sets `KIDS_WALLET_BASE=/kids-wallet/`
+(`.github/workflows/pages.yml`); local builds use `/`. Get test coins from a
+signet or testnet faucet and send them to the vault address shown in the app.
 
 ### Regtest integration test
 
-`test/regtest.integration.test.ts` funds two vaults on a local regtest node, mines blocks, and checks that the node rejects a child-path spend before the unlock time (`non-final`) and accepts the parent path at any time and the child path after the unlock time. It is skipped unless `BITCOIND_RPC_URL` is set, and it refuses to run on any chain other than regtest. The node needs no wallet.
+`test/regtest.integration.test.ts` funds two v0 vaults on a local regtest node
+and checks that the node rejects a child-path spend before the unlock time
+(`non-final`) and accepts the parent path at any time and the child path after
+the unlock time. It is skipped unless `BITCOIND_RPC_URL` is set, and it refuses
+to run on any chain other than regtest.
 
 ```bash
 bitcoind -regtest -daemon -rpcuser=kids -rpcpassword=wallet -fallbackfee=0.0002
@@ -145,43 +135,38 @@ bitcoin-cli -regtest -rpcuser=kids -rpcpassword=wallet stop
 ```
 src/
   core/            Vault logic with no React or DOM imports (enforced by ESLint)
-    script.ts      Build and decode the witness script, script number encoding
-    vault.ts       P2WSH address, vault descriptor export and import
-    psbt.ts        Coin selection, PSBT build, sign and finalize for both paths
+    script.ts      v0 witness script, script number encoding
+    vault.ts       v0 P2WSH address, vault descriptor export and import
+    psbt.ts        v0 coin selection, PSBT build, sign and finalize
+    taproot.ts     v1 PREVIEW: Taproot leaves, guardian leaf, address, control blocks
     keys.ts        BIP39 recovery phrases, BIP32 derivation, WIF import
     validate.ts    Public keys, unlock time, birth date, fee rate, addresses, amounts
-    networks.ts    Network parameters and derivation paths
-    *.test.ts      Unit tests
-  api/mempool.ts   mempool.space client (UTXOs, transaction hex, fees, tip, broadcast)
-  lib/             Hash router, saved vaults, data loading hooks, formatting
-  components/      Shared UI and the recovery phrase backup step
-  pages/           Vaults, create, import, vault, withdraw and learn screens
-  content/         Lesson texts
+  api/mempool.ts   mempool.space client
+  content/         Lessons, status table source, scripted tutor demo
+  pages/           Landing, vaults, create, import, vault, withdraw, learn
+  components/      Shared UI, recovery phrase backup, SVG illustrations
+content/           Content pack schema and packs
+tutor/             Tutor persona and demo prompts per age band
+docs/              Vision, roadmap, RFCs, screenshots
 test/              Optional regtest integration test
-docs/screenshots/  README screenshots
 ```
-
-Main libraries: bitcoinjs-lib 7, bip32 5, bip39 3, ecpair 3, @bitcoinerlab/secp256k1 2, qrcode.react 4, React 19, Vite 8, Tailwind CSS 4, Vitest 5. bip39 calls the Node.js `Buffer` global, so `src/polyfills.ts` provides it from the `buffer` package; the other Bitcoin libraries use `Uint8Array`. The production build bundles only the English BIP39 wordlist.
-
-## Roadmap
-
-- Taproot version: a vault with one script leaf per spending path.
-- Hardware wallet signing: export the unsigned PSBT and import the signed one.
-- Multisig parents: replace the parent key with a 2-of-2 or 1-of-2 between both parents.
-- Translations of the interface and lessons, starting with Portuguese.
-
-## History
-
-The project began as the XYZ Challenge, a hackathon run by Pedro Fernandes in 2024 around the Kids Wallet idea. This repository now holds a working base that new challenges can build on.
 
 ## Contributing
 
-Open an issue to discuss a change, then send a pull request. CI runs lint, type check, unit tests and the production build. Challenge tracks built on this base:
+Tracks: Flutter or native client, pt-BR and other language packs, mini-games
+for 6 to 9, Taproot v1, FROST growth ceremonies, passkey unlock, tutor safety
+evals, charity integration. Each has an RFC and an issue template. See
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-1. Flutter mobile client: read the same vault file format, show balance and deposit address, and sign withdrawals on the device.
-2. Lessons gamification: quizzes, progress per child and small savings goals tied to the vault balance.
-3. Taproot migration: design a Taproot vault with the same rules, write the tests, and add a migration flow from the P2WSH vault.
-4. PSBT export to hardware wallets: export unsigned PSBTs, import signed ones, and finalize them with the right witness stack for each path.
+## History
+
+The project began as the XYZ Challenge, a hackathon run by Pedro Fernandes in
+2024 around the Kids Wallet idea. The original plan derived the wallet from the
+child's face and date of birth; that was dropped because a face and a birth date
+are public or easy to find, so the prototype uses random keys from BIP39
+recovery phrases and the design keeps biometrics on the device only. This
+repository now holds the working prototype and the public design for what comes
+next.
 
 ## Support
 

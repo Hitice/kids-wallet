@@ -61,8 +61,8 @@ export const LESSONS: Lesson[] = [
     id: 'why-18',
     title: 'Why the vault opens at 18',
     paragraphs: [
-      'This vault has two locks. The parent key opens it at any time, so parents can still use the money if the family needs it.',
-      'The child key opens it only after the 18th birthday. The rule is written inside Bitcoin itself: until the date arrives, the network refuses to accept a payment signed by the child key.',
+      'The demo vault on this site has two locks. The parent key opens it at any time, and the child key opens it only after the 18th birthday. The rule is written inside Bitcoin itself: until the date arrives, the network refuses to accept a payment signed by the child key.',
+      'The next vault removes the parent lock. Parents, grandparents and friends can put coins in, but nobody can take them out before the child is 18. Only three guardians the family chose can act in an emergency, after a long wait, and only to send the coins to a charity for children.',
       'Waiting is part of the lesson. It gives the savings time to grow and gives the child time to learn how to look after money before they are in charge of it.',
     ],
     tryThis: 'Look at the unlock date on your vault. How old will you be? What would you like to have learned by then?',

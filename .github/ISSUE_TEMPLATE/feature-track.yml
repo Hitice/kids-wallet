@@ -1,0 +1,52 @@
+name: Feature track
+description: Take or propose work on one of the contribution tracks.
+title: "[track] "
+labels: ["track"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for picking up a track. Read the RFC first. Never paste a recovery phrase, private key or any data about a real child.
+  - type: dropdown
+    id: track
+    attributes:
+      label: Track
+      options:
+        - Flutter or native client (RFC 0008)
+        - Mini-games for 6 to 9 (RFC 0006)
+        - Taproot v1 implementation (RFC 0002)
+        - FROST growth ceremonies (RFC 0003)
+        - Passkey unlock (RFC 0004)
+        - Tutor safety evals (RFC 0005)
+        - Charity integration (RFC 0007)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: What you will build
+      description: The smallest piece that is useful on its own.
+    validations:
+      required: true
+  - type: textarea
+    id: enforcement
+    attributes:
+      label: Enforced by code or by governance
+      description: Which rules does your work enforce in code (script or client), and which stay governance?
+  - type: textarea
+    id: tests
+    attributes:
+      label: How it will be tested
+      description: Unit tests, regtest, signet, evals.
+    validations:
+      required: true
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Rules
+      options:
+        - label: Test networks only. Nothing here touches mainnet.
+          required: true
+        - label: No secrets are stored, logged or sent anywhere.
+          required: true

@@ -1,0 +1,38 @@
+name: RFC comment
+description: Comment on, question or propose a change to an RFC.
+title: "[rfc] "
+labels: ["rfc"]
+body:
+  - type: dropdown
+    id: rfc
+    attributes:
+      label: RFC
+      options:
+        - 0001 Vault v0
+        - 0002 Vault v1, Taproot with guardians
+        - 0003 Threshold child key and growth ceremonies
+        - 0004 Device biometrics and passkeys
+        - 0005 AI tutor by age band
+        - 0006 Content packs and community
+        - 0007 Charity fallback
+        - 0008 Platforms and PWA
+        - New RFC
+    validations:
+      required: true
+  - type: input
+    id: section
+    attributes:
+      label: Section or open question
+      placeholder: "Open questions, item 1"
+  - type: textarea
+    id: comment
+    attributes:
+      label: Comment
+      description: What is wrong, unclear or missing, and what you propose instead. Say whether your proposal is enforced by code or by governance.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: BIPs, papers, implementations, laws.

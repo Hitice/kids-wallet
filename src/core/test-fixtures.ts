@@ -13,6 +13,9 @@ export const TEST_PARENT_MNEMONIC =
 export const TEST_CHILD_MNEMONIC = 'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong';
 export const TEST_OTHER_MNEMONIC =
   'legal winner thank year wave sausage worth useful legal winner thank yellow';
+/** Fourth BIP39 test vector (entropy 7f7f...), used as the third guardian in the v1 preview tests. */
+export const TEST_GUARDIAN_MNEMONIC =
+  'letter advice cage absurd amount doctor acoustic avoid letter advice cage above';
 
 /** 2020-06-15 birth date, so the 18th birthday is 2038-06-15T00:00:00Z. */
 export const TEST_BIRTH_DATE = '2020-06-15';

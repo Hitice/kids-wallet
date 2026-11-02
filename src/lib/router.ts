@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react';
 /** Hash routes: nothing about the user ever reaches a server, not even the path. */
 export type Route =
   | { name: 'home' }
+  | { name: 'vaults' }
   | { name: 'create' }
   | { name: 'import' }
   | { name: 'learn' }
@@ -13,6 +14,7 @@ export type Route =
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
   if (parts.length === 0) return { name: 'home' };
+  if (parts.length === 1 && parts[0] === 'vaults') return { name: 'vaults' };
   if (parts.length === 1 && parts[0] === 'new') return { name: 'create' };
   if (parts.length === 1 && parts[0] === 'import') return { name: 'import' };
   if (parts.length === 1 && parts[0] === 'learn') return { name: 'learn' };

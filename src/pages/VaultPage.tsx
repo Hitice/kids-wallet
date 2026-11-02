@@ -31,7 +31,7 @@ export function VaultNotFound() {
       <p className="text-stone-700">This vault is not saved on this device. Open its vault file to see it again.</p>
       <div className="flex flex-wrap gap-3">
         <LinkButton href="#/import">Open a vault file</LinkButton>
-        <LinkButton href="#/" variant="secondary">
+        <LinkButton href="#/vaults" variant="secondary">
           Your vaults
         </LinkButton>
       </div>
@@ -250,7 +250,7 @@ OP_ENDIF`}
                 variant="danger"
                 onClick={() => {
                   removeVault(id);
-                  navigate('#/');
+                  navigate('#/vaults');
                 }}
               >
                 Remove vault

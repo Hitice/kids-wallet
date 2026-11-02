@@ -1,0 +1,53 @@
+name: Content pack
+description: Propose a new content pack or a translation.
+title: "[pack] "
+labels: ["content"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Packs are JSON files under content/packs/<language>/. Format and rules are in content/README.md. pt-BR is the first community track.
+  - type: input
+    id: language
+    attributes:
+      label: Language (BCP 47)
+      placeholder: pt-BR
+    validations:
+      required: true
+  - type: dropdown
+    id: band
+    attributes:
+      label: Age band
+      options:
+        - 6-9
+        - 10-13
+        - 14-17
+        - "18"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Translation of an existing pack
+        - New pack
+        - Fix to an existing pack
+    validations:
+      required: true
+  - type: textarea
+    id: outline
+    attributes:
+      label: Outline
+      description: Lesson titles, and quizzes or game references you plan to add.
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Rules
+      options:
+        - label: No lesson asks the child to type or show a phrase, key, password or PIN.
+          required: true
+        - label: No price predictions and no buy or sell advice. Saving concepts only.
+          required: true
+        - label: Plain text, plain ASCII, no em dashes and no emojis.
+          required: true

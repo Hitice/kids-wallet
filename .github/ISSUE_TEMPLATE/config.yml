@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Read the RFCs
+    url: https://github.com/Hitice/kids-wallet/tree/main/docs/rfcs
+    about: The design, the status of each part and the open questions.

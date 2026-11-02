@@ -6,5 +6,6 @@ export * from './keys';
 export * from './networks';
 export * from './psbt';
 export * from './script';
+export * from './taproot';
 export * from './validate';
 export * from './vault';

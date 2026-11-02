@@ -4,13 +4,13 @@ import { formatUtcDate, timeUntil } from '../lib/format';
 import { vaultHref } from '../lib/router';
 import { useSavedVaults } from '../lib/vaultStore';
 
-export function HomePage() {
+export function VaultsPage() {
   const vaults = useSavedVaults();
   const now = nowSeconds();
 
   return (
     <div className="space-y-6">
-      <PageTitle lead="Save bitcoin for a child. The parent key can spend at any time. The child key can spend only after the child turns 18.">
+      <PageTitle lead="Demo vaults (v0, signet and testnet). In this prototype the parent key can spend at any time and the child key only after the child turns 18. The v1 design removes the parent path.">
         Your vaults
       </PageTitle>
 

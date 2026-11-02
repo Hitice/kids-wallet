@@ -71,7 +71,7 @@ export function ImportVaultPage() {
             <Button disabled={!text.trim()} onClick={() => importText(text)}>
               Open vault
             </Button>
-            <a href="#/" className="inline-flex min-h-11 items-center px-2 font-semibold text-teal-800 underline">
+            <a href="#/vaults" className="inline-flex min-h-11 items-center px-2 font-semibold text-teal-800 underline">
               Cancel
             </a>
           </div>

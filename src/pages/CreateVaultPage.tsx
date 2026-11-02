@@ -297,7 +297,7 @@ export function CreateVaultPage() {
           </Card>
           <div className="flex flex-wrap gap-3">
             <Button type="submit">Continue</Button>
-            <a href="#/" className="inline-flex min-h-11 items-center px-2 font-semibold text-teal-800 underline">
+            <a href="#/vaults" className="inline-flex min-h-11 items-center px-2 font-semibold text-teal-800 underline">
               Cancel
             </a>
           </div>

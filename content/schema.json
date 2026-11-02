@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hitice.github.io/kids-wallet/content/schema.json",
+  "title": "Kids Wallet content pack",
+  "description": "A versioned set of lessons, quizzes and activities for one language and one age band. Packs hold no secrets and no personal data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "formatVersion", "id", "version", "language", "ageBand", "title", "license", "lessons"],
+  "properties": {
+    "format": { "const": "kids-wallet-content-pack" },
+    "formatVersion": { "const": 1 },
+    "id": {
+      "type": "string",
+      "description": "Stable identifier, lowercase words separated by hyphens.",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of this pack.",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "language": {
+      "type": "string",
+      "description": "BCP 47 tag: a two-letter language, optionally with a region (en, pt-BR).",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "ageBand": { "$ref": "#/$defs/ageBand" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "type": "string", "maxLength": 400 },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "url": { "type": "string", "pattern": "^https://" }
+        }
+      }
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX identifier of the text license, for example CC-BY-4.0 or MIT.",
+      "pattern": "^[A-Za-z0-9.+-]+$"
+    },
+    "lessons": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/lesson" }
+    }
+  },
+  "$defs": {
+    "ageBand": {
+      "type": "string",
+      "enum": ["6-9", "10-13", "14-17", "18"]
+    },
+    "lesson": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "paragraphs", "tryThis"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "paragraphs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1, "maxLength": 600 }
+        },
+        "tryThis": {
+          "type": "string",
+          "description": "A short activity a parent and child can do together.",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "quiz": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/question" }
+        },
+        "game": { "$ref": "#/$defs/game" }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt", "choices", "answer"],
+      "properties": {
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "choices": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
+        "answer": {
+          "type": "integer",
+          "description": "Index of the correct choice.",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "explanation": { "type": "string", "maxLength": 300 }
+      }
+    },
+    "game": {
+      "type": "object",
+      "description": "Pointer to a mini-game shipped with the app or as a static asset. Games never receive keys.",
+      "additionalProperties": false,
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["match", "sort", "count", "story"] },
+        "ref": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+      }
+    }
+  }
+}
