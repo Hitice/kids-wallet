@@ -15,9 +15,18 @@ rules of the vault are written in Bitcoin script, not in anyone's goodwill.
 Start with the [vision](docs/VISION.md), the [RFCs](docs/rfcs/) and the
 [roadmap](docs/ROADMAP.md).
 
-| Phone (390 px) | Desktop (1280 px) |
-| --- | --- |
-| ![Landing page at phone width](docs/screenshots/landing-390.png) | ![Landing page at desktop width](docs/screenshots/landing-1280.png) |
+<p align="center">
+  <img src="docs/screenshots/hero-desktop.png" width="860" alt="Kids Wallet landing page: the child with a treasure chest and the two ways to start">
+</p>
+
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="docs/screenshots/phone-home.png" width="200" alt="Home on a phone"><br><sub>Home</sub></td>
+    <td align="center" width="25%"><img src="docs/screenshots/phone-vault.png" width="200" alt="A vault locked for the child until 2037, with its deposit QR code"><br><sub>Vault</sub></td>
+    <td align="center" width="25%"><img src="docs/screenshots/phone-withdraw.png" width="200" alt="Withdraw screen with the parent and child paths"><br><sub>Withdraw</sub></td>
+    <td align="center" width="25%"><img src="docs/screenshots/phone-learn.png" width="200" alt="Six lessons for children and parents"><br><sub>Learn</sub></td>
+  </tr>
+</table>
 
 ## Grows with the child
 
@@ -33,6 +42,10 @@ Lessons and games come from community-maintained, versioned
 a PWA.
 
 ## Security premise
+
+<p align="center">
+  <img src="docs/screenshots/section-why.png" width="760" alt="The vault has two doors: the child after 18, and the guardians toward charities. There is no door for parents, the company or the tutor.">
+</p>
 
 - **The script governs the funds.** Not the parents, not the company, not the
   AI. Parents have no spend path at all; anyone can deposit.
@@ -93,10 +106,6 @@ as a preview with test vectors, not wired into the UI.
   build files.
 - Keys live in browser memory while a page uses them. A compromised browser,
   extension or device can read anything on the page.
-
-| Vault | Withdraw | Learn |
-| --- | --- | --- |
-| ![Vault page with deposit address and QR code](docs/screenshots/vault.png) | ![Withdraw screen with the child path locked](docs/screenshots/withdraw.png) | ![Lessons](docs/screenshots/learn.png) |
 
 ## Run and test
 
